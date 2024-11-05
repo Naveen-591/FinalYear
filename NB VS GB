@@ -1,0 +1,103 @@
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.metrics import accuracy_score
+
+# Load your dataset
+data = pd.read_csv('/content/student-por.csv')
+
+# Define a target variable (label)
+data['label'] = (data['higher'] == 'yes').astype(int)
+
+# Select relevant columns for text processing
+text_data = data[['school', 'sex', 'address', 'Mjob', 'Fjob', 'reason', 'guardian']]
+
+# Concatenate selected columns into a single text column
+data['text'] = text_data.apply(lambda row: ' '.join(row), axis=1)
+
+# Feature Extraction
+tfidf_vectorizer = TfidfVectorizer(max_features=1000)
+X = tfidf_vectorizer.fit_transform(data['text'])
+y = data['label']
+
+# Initialize variables to store cumulative accuracy
+total_accuracy_nb = 0
+total_accuracy_gb = 0
+
+# Perform 10 iterations
+for iteration in range(10):
+    print(f"Iteration {iteration + 1}")
+
+    # Split Data
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=iteration)
+
+    # Train and Evaluate Naïve Bayes
+    naive_bayes = MultinomialNB()
+    naive_bayes.fit(X_train, y_train)
+    y_pred_nb = naive_bayes.predict(X_test)
+    accuracy_nb = accuracy_score(y_test, y_pred_nb)
+    total_accuracy_nb += accuracy_nb
+    print(f"Naïve Bayes Accuracy: {accuracy_nb:.4f}")
+
+    # Train and Evaluate Gradient Boosting
+    gradient_boosting = GradientBoostingClassifier(n_estimators=100, random_state=42)  
+    gradient_boosting.fit(X_train, y_train)
+    y_pred_gb = gradient_boosting.predict(X_test)
+    accuracy_gb = accuracy_score(y_test, y_pred_gb)
+    total_accuracy_gb += accuracy_gb
+    print(f"Gradient Boosting Accuracy: {accuracy_gb:.4f}")
+
+    print("=" * 50)  # Add a separator for clarity
+
+# Calculate average accuracy
+avg_accuracy_nb = total_accuracy_nb / 10
+avg_accuracy_gb = total_accuracy_gb / 10
+
+print(f"\nAverage Naïve Bayes Accuracy: {avg_accuracy_nb:.4f}")
+print(f"Average Gradient Boosting Accuracy: {avg_accuracy_gb:.4f}")
+output:
+Iteration 1
+Naïve Bayes Accuracy: 0.9231
+Gradient Boosting Accuracy: 0.9308
+==================================================
+Iteration 2
+Naïve Bayes Accuracy: 0.9462
+Gradient Boosting Accuracy: 0.9231
+==================================================
+Iteration 3
+Naïve Bayes Accuracy: 0.9077
+Gradient Boosting Accuracy: 0.8769
+==================================================
+Iteration 4
+Naïve Bayes Accuracy: 0.9231
+Gradient Boosting Accuracy: 0.9154
+==================================================
+Iteration 5
+Naïve Bayes Accuracy: 0.8923
+Gradient Boosting Accuracy: 0.8846
+==================================================
+Iteration 6
+Naïve Bayes Accuracy: 0.8769
+Gradient Boosting Accuracy: 0.8923
+==================================================
+Iteration 7
+Naïve Bayes Accuracy: 0.9462
+Gradient Boosting Accuracy: 0.9385
+==================================================
+Iteration 8
+Naïve Bayes Accuracy: 0.9462
+Gradient Boosting Accuracy: 0.9462
+==================================================
+Iteration 9
+Naïve Bayes Accuracy: 0.8692
+Gradient Boosting Accuracy: 0.8615
+==================================================
+Iteration 10
+Naïve Bayes Accuracy: 0.9231
+Gradient Boosting Accuracy: 0.9231
+==================================================
+
+Average Naïve Bayes Accuracy: 0.9154
+Average Gradient Boosting Accuracy: 0.9092
