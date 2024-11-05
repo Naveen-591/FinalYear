@@ -1,0 +1,107 @@
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.neighbors import KNeighborsClassifier  # Added for KNN
+from sklearn.metrics import accuracy_score
+
+# Load your dataset
+data = pd.read_csv('/content/student-por.csv')
+
+# Define a target variable (label)
+data['label'] = (data['higher'] == 'yes').astype(int)
+
+# Select relevant columns for text processing
+text_data = data[['school', 'sex', 'address', 'Mjob', 'Fjob', 'reason', 'guardian']]
+
+# Concatenate selected columns into a single text column
+data['text'] = text_data.apply(lambda row: ' '.join(row), axis=1)
+
+# Feature Extraction
+tfidf_vectorizer = TfidfVectorizer(max_features=1000)
+X = tfidf_vectorizer.fit_transform(data['text'])
+y = data['label']
+
+# Initialize lists to store accuracy values
+naive_bayes_accuracies = []
+knn_accuracies = []
+
+# Perform 10 iterations
+for iteration in range(10):
+    print(f"Iteration {iteration + 1}")
+
+    # Split Data
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=iteration)
+
+    # Train and Evaluate Naive Bayes
+    naive_bayes = MultinomialNB()
+    naive_bayes.fit(X_train, y_train)
+    y_pred_nb = naive_bayes.predict(X_test)
+    accuracy_nb = accuracy_score(y_test, y_pred_nb)
+    naive_bayes_accuracies.append(accuracy_nb)
+    print(f"Naive Bayes Accuracy: {accuracy_nb:.4f}")
+
+    # Train and Evaluate K-Nearest Neighbors (KNN)
+    knn = KNeighborsClassifier(n_neighbors=5)  # You can change the number of neighbors
+    knn.fit(X_train, y_train)
+    y_pred_knn = knn.predict(X_test)
+    accuracy_knn = accuracy_score(y_test, y_pred_knn)
+    knn_accuracies.append(accuracy_knn)
+    print(f"KNN Accuracy: {accuracy_knn:.4f}")
+
+    print("=" * 50)  # Add a separator for clarity
+
+# Calculate and print the average accuracy values
+avg_naive_bayes_accuracy = sum(naive_bayes_accuracies) / len(naive_bayes_accuracies)
+avg_knn_accuracy = sum(knn_accuracies) / len(knn_accuracies)
+
+print(f"Average Naive Bayes Accuracy: {avg_naive_bayes_accuracy:.4f}")
+print(f"Average KNN Accuracy: {avg_knn_accuracy:.4f}")
+
+
+
+OUTPUT:
+
+
+Iteration 1
+Naive Bayes Accuracy: 0.9231
+KNN Accuracy: 0.9154
+==================================================
+Iteration 2
+Naive Bayes Accuracy: 0.9462
+KNN Accuracy: 0.9077
+==================================================
+Iteration 3
+Naive Bayes Accuracy: 0.9077
+KNN Accuracy: 0.9000
+==================================================
+Iteration 4
+Naive Bayes Accuracy: 0.9231
+KNN Accuracy: 0.9154
+==================================================
+Iteration 5
+Naive Bayes Accuracy: 0.8923
+KNN Accuracy: 0.8923
+==================================================
+Iteration 6
+Naive Bayes Accuracy: 0.8769
+KNN Accuracy: 0.8769
+==================================================
+Iteration 7
+Naive Bayes Accuracy: 0.9462
+KNN Accuracy: 0.9308
+==================================================
+Iteration 8
+Naive Bayes Accuracy: 0.9462
+KNN Accuracy: 0.9308
+==================================================
+Iteration 9
+Naive Bayes Accuracy: 0.8692
+KNN Accuracy: 0.8231
+==================================================
+Iteration 10
+Naive Bayes Accuracy: 0.9231
+KNN Accuracy: 0.9154
+==================================================
+Average Naive Bayes Accuracy: 0.9154
+Average KNN Accuracy: 0.9008
